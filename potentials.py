@@ -1,7 +1,8 @@
 import numpy as np
 import theano
 import theano.tensor as T
-# from pele.potentials import BasePotential
+from pele.potentials import BasePotential
+from pele.systems import BaseSystem
 
 class BaseModel(object):
     
@@ -75,13 +76,38 @@ class WaveModel(BaseModel):
         
         return grad
 
+class ErrorFunction(BasePotential):
+    """a quadratic error function for fitting
+    
+    V(xi,yi|alpha) = 0.5 * (yi-(f(xi|alpha))**2
+    where 
+    """
+    def __init__(self, model):
+        """ instance of model to fit"""
+        self.model = model
+
+    def getEnergy(self, params):
+        
+        cost = self.model.cost(params)
+        return cost.eval()
+
+    def getEnergyGradient(self, params):
+
+        e, g = self.model.costGradient(params)
+        return e.eval(), g.eval()
+    
+    def getEnergyGradientHessian(self, params):
+        
+        e, g, h = self.model.costGradientHessian(params)
+        return e.eval(), g.eval(), h.eval()
+    
 class TheanoTestModel:
     """ This is an example class for playing around with regression modelling using theano.
         We would eventually like to abstracify this, so that one can input
         a regression model expression string.
     """
     
-    def __init__(self, input_data, target_data, starting_coords):
+    def __init__(self, input_data, target_data, starting_params):
         
         self.X = theano.shared(input_data)
         self.t = theano.shared(target_data)
@@ -89,7 +115,7 @@ class TheanoTestModel:
         self.x_to_predict = theano.shared(np.random.random(input_data.shape[1]))
         self.model_function = theano.function
         
-        self.coords = theano.shared(starting_coords)
+        self.params = theano.shared(starting_params)
 
     def predict2(self, xval):
         
@@ -101,35 +127,44 @@ class TheanoTestModel:
 
         self.x_to_predict.set_value(xval)
 #         xval = T.scalar("x")        
-        model = self.coords * self.x_to_predict
+        model = self.params * self.x_to_predict
         model.eval()
         ret = theano.function([], model)
         
         return ret()
     
     def Y(self, X):
-        """ This defines the model
+        """ 
+        This defines the model
         inputs : X -- theano shared variable
         returns : Theano shared variable
         """
-        return self.coords[0] * T.exp(self.coords[1] * X) * T.sin(self.coords[2] * X)
-#         return self.coords * X
+        return T.exp(-self.params[0]*X) * T.sin(self.params[1]*X+self.params[2]) \
+                    * T.sin(self.params[3]*X + self.params[4])
+#         return self.params[0] * T.exp(self.params[1] * X) * T.sin(self.params[2] * X)
+#         return self.params * X
         
-    def cost(self, coords):
-#         print self.coords.shape
-        print coords.shape
-        self.coords.set_value(coords)
+    def cost(self, params):
+#         print self.params.shape
+        self.params.set_value(params)
         Cost = T.sum((self.Y(self.X) - self.t)**2)
         
         return Cost
     
-    def costGradient(self, coords):
+    def costGradient(self, params):
         
-        self.coords.set_value(coords)
+        self.params.set_value(params)
         
-        c = self.cost(coords)
-        g = T.grad(c, self.coords)
+        c = self.cost(params)
+        g = T.grad(c, self.params)
         return c, g
+    
+    def costGradientHessian(self, params):
+        
+        c, g = self.costGradient(params)
+        h = theano.gradient.hessian(c, self.params)
+        
+        return c, g, h
 #         costfunction = 
 # class MLPotential(BasePotential):
 #     def __init__(self, inputs, outputs, model):
@@ -155,26 +190,83 @@ class TheanoTestModel:
 #     def getEnergy(self):
 #         pass
 #     
+
+class RegressionSystem(BaseSystem):
+    def __init__(self, model):
+        super(RegressionSystem, self).__init__()
+        self.model = model
+        self.params.database.accuracy =0.01
+        self.params.double_ended_connect.local_connect_params.tsSearchParams.hessian_diagonalization = True
+
+    def get_potential(self):
+        return ErrorFunction(self.model)
+    
+    def get_mindist(self):
+        # no permutations of parameters
+        
+        #return mindist_with_discrete_phase_symmetry
+        #permlist = []
+        return lambda x1, x2: np.linalg.norm(x1-x2)
+#         return MinPermDistWaveModel( niter=10)
+
+    def get_orthogonalize_to_zero_eigenvectors(self):
+        return None
+#         return my_orthog_opt
+        #return orthogopt
+        #return orthogopt_translation_only
+    
+    def get_minimizer(self, tol=1.0e-2, nsteps=100000, M=4, iprint=1, maxstep=1.0, **kwargs):
+        from pele.optimize import lbfgs_cpp as quench
+        return lambda coords: quench(coords, self.get_potential(), tol=tol, 
+                                     nsteps=nsteps, M=M, iprint=iprint, 
+                                     maxstep=maxstep, 
+                                     **kwargs)
+#     def get_minimizer(self, **kwargs):
+#         return lambda coords: myMinimizer(coords, self.get_potential(),**kwargs)
+    
+    def get_compare_exact(self, **kwargs):
+        # no permutations of parameters
+        mindist = self.get_mindist()
+        return lambda x1, x2: (mindist(x1, x2)[0] < 1e-3, x1, x2)
+    
 def main():
     
     xvals = np.random.random((100,1))
     xvals = np.atleast_2d(xvals)
-    starting_coords = np.atleast_1d([1.0,2.0,3.0])
-    model = TheanoTestModel(input_data = xvals, 
-                            target_data = 3.0*xvals+np.random.random((100,1)), 
-                            starting_coords = starting_coords)
+#     real_params = np.array([1.0, 0.1, 2.0])
+    real_params=np.array([0.1,1.0,0.0,0.0,0.5*np.pi])
+    tvals = np.exp(-real_params[0]*xvals) * np.sin(real_params[1]*xvals+real_params[2]) \
+                    * np.sin(real_params[3]*xvals + real_params[4])
+#     real_params[0] * np.exp(real_params[1] * xvals) * np.sin(real_params[2] * xvals) \
+#                 + 0.1 * np.random.random((100,1))
 
-    print model.Y(xvals).eval()[0], xvals[0],starting_coords[0]
+    starting_params = np.atleast_1d(np.random.random(real_params.shape))
+    
+    model = TheanoTestModel(input_data = xvals, 
+                            target_data = tvals, 
+                            starting_params = starting_params
+                            )
+
+    system = RegressionSystem(model)
+    
+    for _ in xrange(10):
+        quench = system.get_minimizer()
+        ret = quench(np.random.random(starting_params.shape))
+        print ret.coords, ret.energy
     exit()
-    sampled_points = model.Y(xvals).eval() + 0.1 * np.random.random(xvals.shape)
     import matplotlib.pyplot as plt
-    plt.plot(sampled_points,'x')
-    plt.plot(model.Y(xvals).eval())
-    plt.show()
-    print model.cost(starting_coords).eval()
-#     c,g = model.costGradient(coords2)
-#     print c.eval()
-#     print g.eval()
+#     plt.plot(xvals, model.Y(xvals).eval(), 'x')
+#     plt.show()
+#     print model.Y(xvals).eval()[0], xvals[0], starting_params[0]
+#     exit()
+    sampled_points = model.Y(xvals).eval() + 0.1 * np.random.random(xvals.shape)
+#     plt.plot(xvals,sampled_points,'x')
+#     plt.show()
+#     print model.cost(starting_params).eval()
+    c,g,h = model.costGradientHessian(starting_params)
+    print c.eval()
+    print g.eval()
+    print h.eval()
     
 if __name__=="__main__":
     main()
