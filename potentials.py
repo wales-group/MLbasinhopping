@@ -88,20 +88,27 @@ class ErrorFunction(BasePotential):
 
     def getEnergy(self, params):
         
-        cost = self.model.cost(params)
-        return cost.eval()
+#         cost = self.model.cost(params)
+        return self.model.evaluated_cost(params)
+#         return cost.eval()
 
     def getEnergyGradient(self, params):
 
-        e, g = self.model.costGradient(params)
-        return e.eval(), g.eval()
+        return self.model.evaluated_costGradient(params)
+#         print self.model.evaluated_costGradient(params)
+#         exit()
+#         e = self.model.cost(params)
+#         g = self.model.costGradient(params)
+# 
+#         return e.eval(), g.eval()
     
     def getEnergyGradientHessian(self, params):
         
         e, g, h = self.model.costGradientHessian(params)
         return e.eval(), g.eval(), h.eval()
     
-class TheanoTestModel:
+                   
+class BaseTheanoModel(object):
     """ This is an example class for playing around with regression modelling using theano.
         We would eventually like to abstracify this, so that one can input
         a regression model expression string.
@@ -116,7 +123,35 @@ class TheanoTestModel:
         self.model_function = theano.function
         
         self.params = theano.shared(starting_params)
+        self._theano_cost = theano.function(inputs=[],
+                                           outputs=self.costFunction()
+                                           )
+        
+        gradient = [T.grad(self.costFunction(), self.params)]
+        costGradient = [self.costFunction()] + gradient
+        
+        self._theano_costGradient = theano.function(inputs=[],
+                                                   outputs=costGradient
+                                                   )
 
+        hess = theano.gradient.hessian(self.costFunction(), self.params)
+        outputs = [self.costFunction()] + gradient + [hess]
+        self._theano_costGradientHessian = theano.function(inputs=[],
+                                                          outputs=outputs
+                                                          )
+        
+    def theano_cost(self, params):
+        self.params.set_value(params)
+        return self._theano_cost()
+    
+    def theano_costGradient(self, params):
+        self.params.set_value(params)
+        return self._theano_costGradient()
+    
+    def theano_costGradientHessian(self, params):
+        self.params.set_value(params)
+        return self._theano_costGradientHessian()
+            
     def predict2(self, xval):
         
         self.x_to_predict.set_value(xval)    
@@ -139,57 +174,74 @@ class TheanoTestModel:
         inputs : X -- theano shared variable
         returns : Theano shared variable
         """
+        raise NotImplementedError
+    
         return T.exp(-self.params[0]*X) * T.sin(self.params[1]*X+self.params[2]) \
                     * T.sin(self.params[3]*X + self.params[4])
-#         return self.params[0] * T.exp(self.params[1] * X) * T.sin(self.params[2] * X)
-#         return self.params * X
         
-    def cost(self, params):
+    def costFunction(self):
 #         print self.params.shape
-        self.params.set_value(params)
+#         self.params.set_value(params)
         Cost = T.sum((self.Y(self.X) - self.t)**2)
         
         return Cost
     
-    def costGradient(self, params):
-        
-        self.params.set_value(params)
-        
-        c = self.cost(params)
-        g = T.grad(c, self.params)
-        return c, g
+#     def costGradient(self):
+#         
+# #         self.params.set_value()
+#         
+#         g = T.grad(self.cost(), self.params)
+#         return g
     
-    def costGradientHessian(self, params):
-        
-        c, g = self.costGradient(params)
-        h = theano.gradient.hessian(c, self.params)
-        
-        return c, g, h
-#         costfunction = 
-# class MLPotential(BasePotential):
-#     def __init__(self, inputs, outputs, model):
+#     def costGradientHessian(self, params):
 #         
-#         self.inputs = inputs
-#         self.outputs = outputs
-#         self.model = model
+#         c, g = self.costGradient(params)
+#         h = theano.gradient.hessian(c, self.params)
 #         
-#     def getEnergy(self, coords):
-#         return self.model.cost(self.inputs, self.outputs, coords)
+#         return c, g, h
+
+
+#     def evaluated_cost(self, params):
+#         
+# #         func = theano.function([],self.cost(params))
+#         self.params.set_value(params)
+#         return self.theano_cost()
 # 
-#     def getEnergyGradient(self, coords):
-#         return self.model.costGradient(self.inputs, self.outputs, coords)
-#     
-#     def getEnergyGradientHessian(self, coords):
-#         return self.model.costGradientHessian(self.inputs, self.outputs, coords)
-#     
-#     
-# class RegressionPotential(MLPotential):
-#     def __init__(self):
-#         super(RegressionPotential).__init__()
-#     
-#     def getEnergy(self):
-#         pass
-#     
+#     def evaluated_costGradient(self, params):
+# #         c = self.evaluated_cost(params)
+# #         g = theano.function([], self.costGradient(params))
+#         self.params.set_value(params)
+# #         print c, g
+#         return self.theano_costGradient()
+    
+#         costfunction = 
+
+class TestModel(BaseTheanoModel):
+    
+    def __init__(self, *args, **kwargs):
+        super(TestModel, self).__init__(*args, **kwargs)
+        
+    def Y(self, X):
+        
+        return T.exp(-self.params[0]*X) * T.sin(self.params[1]*X+self.params[2]) \
+            * T.sin(self.params[3]*X + self.params[4])
+            
+class RegressionPotential(BasePotential):
+    def __init__(self, model):
+        
+        self.model = model
+         
+    def getEnergy(self, coords):
+        return self.model.theano_cost(coords)
+ 
+    def getEnergyGradient(self, coords):
+        ret = self.model.theano_costGradient(coords)
+        return ret[0].item(), ret[1]
+#         return self.model.theano_costGradient(coords)
+     
+    def getEnergyGradientHessian(self, coords):
+        return self.model.theano_costGradientHessian(coords)
+     
 
 class RegressionSystem(BaseSystem):
     def __init__(self, model):
@@ -199,7 +251,7 @@ class RegressionSystem(BaseSystem):
         self.params.double_ended_connect.local_connect_params.tsSearchParams.hessian_diagonalization = True
 
     def get_potential(self):
-        return ErrorFunction(self.model)
+        return RegressionPotential(self.model)
     
     def get_mindist(self):
         # no permutations of parameters
@@ -231,6 +283,7 @@ class RegressionSystem(BaseSystem):
     
 def main():
     
+    theano.config.mode = 'FAST_RUN'
     xvals = np.random.random((100,1))
     xvals = np.atleast_2d(xvals)
 #     real_params = np.array([1.0, 0.1, 2.0])
@@ -242,32 +295,26 @@ def main():
 
     starting_params = np.atleast_1d(np.random.random(real_params.shape))
     
-    model = TheanoTestModel(input_data = xvals, 
+    model = TestModel(input_data = xvals, 
                             target_data = tvals, 
                             starting_params = starting_params
                             )
 
     system = RegressionSystem(model)
+    pot = system.get_potential()
     
-    for _ in xrange(10):
-        quench = system.get_minimizer()
-        ret = quench(np.random.random(starting_params.shape))
+    coords = np.random.random(starting_params.shape)
+
+    quench = system.get_minimizer()
+    for _ in xrange(100):
+#         print model.theano_costGradient(coords)[0]
+#         print model.theano_costGradient(coords)[1]
+#         ret = pot.getEnergyGradient(coords)
+#         print ret
+#         exit()
+        ret = quench(coords)
         print ret.coords, ret.energy
-    exit()
-    import matplotlib.pyplot as plt
-#     plt.plot(xvals, model.Y(xvals).eval(), 'x')
-#     plt.show()
-#     print model.Y(xvals).eval()[0], xvals[0], starting_params[0]
-#     exit()
-    sampled_points = model.Y(xvals).eval() + 0.1 * np.random.random(xvals.shape)
-#     plt.plot(xvals,sampled_points,'x')
-#     plt.show()
-#     print model.cost(starting_params).eval()
-    c,g,h = model.costGradientHessian(starting_params)
-    print c.eval()
-    print g.eval()
-    print h.eval()
-    
+
 if __name__=="__main__":
     main()
         
