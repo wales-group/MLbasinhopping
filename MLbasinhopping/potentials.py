@@ -12,47 +12,58 @@ class BaseTheanoModel(object):
         a regression model expression string.
     """
     
-    def __init__(self, input_data, target_data, starting_params):
+    def __init__(self, input_data, target_data, testX, testt, starting_params):
         
         self.X = theano.shared(input_data)
         self.t = theano.shared(target_data)
     
+        self.testX = theano.shared(testX)
+        self.testt = theano.shared(testt)
+        
         self.x_to_predict = theano.shared(np.random.random(input_data.shape[1]))
         self.model_function = theano.function
         
         self.params = theano.shared(starting_params)
         self._theano_cost = theano.function(inputs=[],
-                                           outputs=self.costFunction()
+                                           outputs=self._costFunction()
                                            )
         
-        gradient = [T.grad(self.costFunction(), self.params)]
-        costGradient = [self.costFunction()] + gradient
+        self._theano_testset_error = theano.function(inputs=[],
+                                           outputs=self._testCostFunction())
+        
+        gradient = [T.grad(self._costFunction(), self.params)]
+        costGradient = [self._costFunction()] + gradient
         
         self._theano_costGradient = theano.function(inputs=[],
                                                    outputs=costGradient
                                                    )
 
-        hess = theano.gradient.hessian(self.costFunction(), self.params)
-        outputs = [self.costFunction()] + gradient + [hess]
+        hess = theano.gradient.hessian(self._costFunction(), self.params)
+        outputs = [self._costFunction()] + gradient + [hess]
         self._theano_costGradientHessian = theano.function(inputs=[],
                                                           outputs=outputs
                                                           )
         
-    def theano_cost(self, params):
+    def cost(self, params):
         """ inputs: parameter values (np array)
             returns: value of cost function
         """
         self.params.set_value(params)
         return self._theano_cost()
     
-    def theano_costGradient(self, params):
+    def testset_error(self, params):
+        
+        self.params.set_value(params)
+        return self._theano_testset_error()
+    
+    def costGradient(self, params):
         """ inputs: parameter values (np array)
             returns: value of cost function and gradient
         """
         self.params.set_value(params)
         return self._theano_costGradient()
     
-    def theano_costGradientHessian(self, params):
+    def costGradientHessian(self, params):
         """ inputs: parameter values (np array)
             returns: value of cost function, gradient and hessian
         """
@@ -77,7 +88,7 @@ class BaseTheanoModel(object):
         raise NotImplementedError
 
         
-    def costFunction(self):
+    def _costFunction(self):
         """ 
             This function defines the model cost function, default is a sum of squared errors
             returns : theano shared variable
@@ -86,22 +97,28 @@ class BaseTheanoModel(object):
         
         return Cost
 
-            
+    
+    def _testCostFunction(self):
+        
+        Cost = T.sum((self.Y(self.testX) - self.testt)**2)
+        
+        return Cost    
+    
 class RegressionPotential(BasePotential):
     def __init__(self, model):
         
         self.model = model
          
     def getEnergy(self, coords):
-        return self.model.theano_cost(coords)
+        return self.model.cost(coords)
  
     def getEnergyGradient(self, coords):
-        ret = self.model.theano_costGradient(coords)
+        ret = self.model.costGradient(coords)
         return ret[0].item(), ret[1]
-#         return self.model.theano_costGradient(coords)
+#         return self.model.costGradient(coords)
      
     def getEnergyGradientHessian(self, coords):
-        return self.model.theano_costGradientHessian(coords)
+        return self.model.costGradientHessian(coords)
      
 
 class RegressionSystem(BaseSystem):
