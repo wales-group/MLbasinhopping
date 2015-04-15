@@ -14,16 +14,19 @@ class BaseTheanoModel(object):
     
     def __init__(self, input_data, target_data, testX, testt, starting_params):
         
+        self.x_to_predict = theano.shared(np.random.random(input_data.shape))
+        self.params = theano.shared(starting_params)
+
         self.X = theano.shared(input_data)
+        if target_data == None:
+            target_data = self.drawSamples(starting_params, input_data, sigma=0.02)
         self.t = theano.shared(target_data)
     
         self.testX = theano.shared(testX)
+        if testt == None:
+            testt = self.drawSamples(starting_params, testX, sigma=0.05)
         self.testt = theano.shared(testt)
         
-        self.x_to_predict = theano.shared(np.random.random(input_data.shape[1]))
-        self.model_function = theano.function
-        
-        self.params = theano.shared(starting_params)
         self._theano_cost = theano.function(inputs=[],
                                            outputs=self._costFunction()
                                            )
@@ -49,6 +52,7 @@ class BaseTheanoModel(object):
             returns: value of cost function
         """
         self.params.set_value(params)
+
         return self._theano_cost()
     
     def testset_error(self, params):
@@ -77,7 +81,7 @@ class BaseTheanoModel(object):
        
         self.x_to_predict.set_value(xval)    
         
-        return self.Y(self.x_to_predict).eval()
+        return self.Y(self.x_to_predict).eval() 
     
     def Y(self, X):
         """ 
@@ -87,6 +91,11 @@ class BaseTheanoModel(object):
         """
         raise NotImplementedError
 
+    def drawSamples(self, params, X, sigma=0.1):
+        
+        self.params.set_value(params)
+        return self.predict(X) + sigma * np.random.normal(size=X.shape) 
+#         pass
         
     def _costFunction(self):
         """ 
