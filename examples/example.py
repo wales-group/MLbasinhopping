@@ -1,31 +1,33 @@
 import numpy as np
 import theano
 import theano.tensor as T
-from potentials import BaseTheanoModel, RegressionSystem
+from MLbasinhopping.potentials import BaseTheanoModel, RegressionSystem
 
 import matplotlib.pyplot as plt
 
 
 class TestModel(BaseTheanoModel):
     
-    def __init__(self, *args, **kwargs):
-        super(TestModel, self).__init__(*args, **kwargs)
-        
     def Y(self, X):
         
         return T.exp(-self.params[0]*X) * T.sin(self.params[1]*X+self.params[2]) \
             * T.sin(self.params[3]*X + self.params[4])
-            
-def run_basinhopping(system):
+
+class SinModel(BaseTheanoModel):
     
-    database = system.create_database()
+    def Y(self, X):
+        
+        return T.sin(self.params[0]*X + self.params[1])
+    
+def run_basinhopping(system, nsteps, database):
+    
     x0 = np.random.random(system.model.params.eval().size)
     
     from pele.takestep import RandomCluster
     step = RandomCluster(volume=5.0)
-    bh = system.get_basinhopping(database=database, takestep=step,coords=x0,temperature = 10.0)
+    bh = system.get_basinhopping(database=database, takestep=step,coords=x0,temperature = 10000.0)
     #bh.stepsize = 20.
-    bh.run(100)
+    bh.run(nsteps)
     print "found", len(database.minima()), "minima"
     min0 = database.minima()[0]
     print "lowest minimum found has energy", min0.energy
@@ -46,50 +48,71 @@ def run_double_ended_connect(system, database):
         connect = system.get_double_ended_connect(min1, min2, database)
         connect.connect()
         
-def make_disconnectivity_graph(database):
+def make_disconnectivity_graph(system, database):
     from pele.utils.disconnectivity_graph import DisconnectivityGraph, database2graph
     
     graph = database2graph(database)
     dg = DisconnectivityGraph(graph, nlevels=10, center_gmin=True)
     dg.calculate()
-    dg.plot()
+    
+    # color DG points by test-set error
+    minimum_to_testerror = lambda m: system.model.testset_error(m.coords)
+    dg.color_by_value(minimum_to_testerror)
+    dg.plot(linewidth=1.5)
+#     plt.colorbar()
     plt.show()
 
-def visualize_solutions(system, db, xvals, tvals):    
+def visualize_solutions(system, db, xvals, tvals, real_params):    
     for m in db.minima():
         system.model.params.set_value(m.coords)
-        curve = system.model.predict(np.arange(0.,3.0*np.pi,0.01))
-        plt.plot(np.arange(0.,3.0*np.pi,0.01), curve, '-')
+        xs = np.arange(0.,3.0*np.pi,0.01)
+#         xs = np.atleast_2d(xs)
+        curve = system.model.predict(xs)
+        plt.plot(xs, curve, '-')
         
+    
     plt.plot(xvals,tvals,'x')
+    system.model.params.set_value(real_params)
+    plt.plot(np.arange(0.,3*np.pi,0.01), system.model.predict(np.arange(0.,3*np.pi,0.01)), '-')
     plt.show()
     
 def test():
     # generate some test data
-    xvals = 3.0*np.pi*np.random.random((100,1))
-    xvals = np.atleast_2d(xvals)
-    real_params=np.array([0.1,1.0,0.0,0.0,0.5*np.pi])
-    tvals = np.exp(-real_params[0]*xvals) * np.sin(real_params[1]*xvals+real_params[2]) \
-                    * np.sin(real_params[3]*xvals + real_params[4]) 
-    # add some noise to the model output data
-    tvals = tvals + np.random.normal(scale=0.1,size=(100,1))
-        
+    xvals = 3.0*np.pi*np.random.random(100)
+    testx = 3.0*np.pi*np.random.random(100)
+    
+    # model parameters for sampling
+    real_params = np.random.random(2)
+    real_params = real_params * np.pi
+      
     # this is the model we use to fit the data
-    model = TestModel(input_data = xvals, 
-                            target_data = tvals, 
-                            starting_params = np.atleast_1d(np.random.random(real_params.shape))
+    model = SinModel(input_data = xvals, 
+                            target_data = None, # generate samples automatically
+                            starting_params=real_params,
+                            testX = testx,
+                            testt = None # generate samples automatically
                             )
+
+    tvals = model.t.get_value()
+    testt = model.testt.get_value()
 
     system = RegressionSystem(model)
     
-    system, db = run_basinhopping(system)
-    visualize_solutions(system, db, xvals, tvals)
+    db = system.create_database("SinModel"+str(real_params[0])+"_"+str(real_params[1])+".sqlite")
+    
+    # run basin-hopping on this landscape
+    nsteps = 1000
+    system, db = run_basinhopping(system, nsteps, db)
+    
+    # draw various best-fits from BH run
+    visualize_solutions(system, db, xvals, tvals, real_params)
+       
+    # connect minima
     run_double_ended_connect(system, db)
-    make_disconnectivity_graph(db)
-    
-    exit()
-    
+        
+    # connect minima
+    make_disconnectivity_graph(system, db)
+        
 
 if __name__=="__main__":
     test()
-                    
