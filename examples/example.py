@@ -7,14 +7,18 @@ import matplotlib.pyplot as plt
 
 
 class TestModel(BaseTheanoModel):
-    
+    """ An example regression model: exponential decay * product of sinusoids
+    """
+
     def Y(self, X):
         
         return T.exp(-self.params[0]*X) * T.sin(self.params[1]*X+self.params[2]) \
             * T.sin(self.params[3]*X + self.params[4])
 
 class SinModel(BaseTheanoModel):
-    
+    """ A simple non-linear regression model: sinusoid.
+    """
+         
     def Y(self, X):
         
         return T.sin(self.params[0]*X + self.params[1])
@@ -81,7 +85,7 @@ def test():
     xvals = 3.0*np.pi*np.random.random(100)
     testx = 3.0*np.pi*np.random.random(100)
     
-    # model parameters for sampling
+    # parameters values which specify the model 
     real_params = np.random.random(2)
     real_params = real_params * np.pi
       
