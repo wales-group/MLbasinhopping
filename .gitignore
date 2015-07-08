@@ -1,0 +1,7 @@
+*.pyc
+*~
+*png
+*out
+*.o
+*sqlite
+.*project
