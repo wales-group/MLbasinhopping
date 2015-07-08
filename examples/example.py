@@ -1,7 +1,7 @@
 import numpy as np
 import theano
 import theano.tensor as T
-from MLbasinhopping.potentials import BaseTheanoModel, RegressionSystem
+from MLbasinhopping.regressionModels import BaseTheanoModel, RegressionSystem
 
 import matplotlib.pyplot as plt
 
