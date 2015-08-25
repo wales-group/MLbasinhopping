@@ -25,24 +25,24 @@ class GaussianBasis(BaseTheanoModel):
 class SinBasis(BaseTheanoModel):
     
     def Y(self, X):
+
+        return sum(self.YbasisFunctions(X))
+    
+    def YbasisFunctions(self, X):
         
-        self.basisFunctions = []
+        functions = []
+        
         params = self.params.get_value()
-#         assert (len(params) % 3) - 1 == 0
         assert (len(params) % 3) == 0
         
-        model = 0
         for o in range(len(params)/3):
             a = self.params[3*o]
             f = self.params[3*o+1]
             b = self.params[3*o+2]
-            self.basisFunctions.append(a * T.sin(f*X + b))
-            model = model + a * T.sin(f*X + b)
+            model_i = a * T.sin(f*X + b)  
+            functions.append(model_i)
         
-        return model
-    
-    def models(self, X):
-        pass
+        return functions
     
     def predict_models(self, X):
         pass
