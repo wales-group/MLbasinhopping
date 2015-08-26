@@ -44,8 +44,14 @@ class SinBasis(BaseTheanoModel):
         
         return functions
     
-    def predict_models(self, X):
-        pass
+    def predict_models(self, xval):
+        
+        self.x_to_predict.set_value(xval)    
+        
+        functions = self.YbasisFunctions(self.x_to_predict)
+        
+        return [f.eval() for f in functions]
+        
             
 class SinModel(BaseTheanoModel):
     
@@ -57,5 +63,5 @@ class HarmonicModel(BaseTheanoModel):
     
     def Y(self, X):
         
-        return self.params[0] * (X-self.params[1])**2 + self.params[2]
+        return 0.5 * self.params[0] * (X-self.params[1])**2 + self.params[2]
     
