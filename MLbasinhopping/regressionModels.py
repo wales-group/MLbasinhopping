@@ -3,7 +3,7 @@ import theano
 import theano.tensor as T
 from pele.potentials import BasePotential
 from pele.systems import BaseSystem
-                   
+         
 class BaseTheanoModel(object):
     """ This is the Base Model class for model parameter estimation,
      used in conjunction with basin-hopping for model parameter estimation.
@@ -172,3 +172,20 @@ class RegressionSystem(BaseSystem):
         mindist = self.get_mindist()
         return lambda x1, x2: mindist(x1, x2)
 
+class TestModel(BaseTheanoModel):
+    """ An example regression model: exponential decay * product of sinusoids
+    """
+
+    def Y(self, X):
+        
+        return T.exp(-self.params[0]*X) * T.sin(self.params[1]*X+self.params[2]) \
+            * T.sin(self.params[3]*X + self.params[4])
+
+class SinModel(BaseTheanoModel):
+    """ A simple non-linear regression model: sinusoid.
+    """
+         
+    def Y(self, X):
+        
+        return T.sin(self.params[0]*X + self.params[1])
+              

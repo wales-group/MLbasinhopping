@@ -6,27 +6,32 @@ import matplotlib.pyplot as plt
 
 from MLbasinhopping.regressionModels import BaseTheanoModel, RegressionSystem
 
-class GaussianBasis(BaseTheanoModel):
-        
+class BasisFunctionModel(BaseTheanoModel):
+    
     def Y(self, X):
+        return sum(self.YbasisFunctions(X))
+    
+    def YbasisFunctions(self, X):
+        raise NotImplementedError
+
+class GaussianBasis(BasisFunctionModel):
         
+    def YbasisFunctions(self, X):
+        
+        functions = []
         params = self.params.get_value()
-        assert (len(params) % 3) - 1 == 0
+        assert (len(params) % 3) == 0
         
-        model = 0
         for o in range(len(params)/3):
             amplitude = self.params[3*o]
             mu = self.params[3*o+1]
             sig = self.params[3*o+2]
-            model = model + amplitude * T.exp(-(X-mu)**2/(2.*sig**2))
-    
-        return model
+            model_i = amplitude * T.exp(-(X-mu)**2/(2.*sig**2))
+            functions.append(model_i)
+            
+        return functions
 
-class SinBasis(BaseTheanoModel):
-    
-    def Y(self, X):
-
-        return sum(self.YbasisFunctions(X))
+class SinBasis(BasisFunctionModel):
     
     def YbasisFunctions(self, X):
         
