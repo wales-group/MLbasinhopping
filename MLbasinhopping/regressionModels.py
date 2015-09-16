@@ -125,7 +125,7 @@ class BaseTheanoModel(object):
 
     
 class MLPotential(BasePotential):
-    """ This class interfaces the regression model class: 
+    """ This class interfaces the model class to pele: 
         The potential energy = cost function """
     def __init__(self, model):
         
