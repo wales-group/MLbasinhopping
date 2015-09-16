@@ -3,8 +3,10 @@ import theano
 import theano.tensor as T
 from pele.potentials import BasePotential
 from pele.systems import BaseSystem
-         
-class BaseTheanoModel(object):
+from MLbasinhopping.systems import MLSystem
+from MLbasinhopping.models import BaseModel
+
+class RegressionModel(BaseModel):
     """ This is the Base Model class for model parameter estimation,
      used in conjunction with basin-hopping for model parameter estimation.
      Most of the objects in this class are theano functions. 
@@ -17,7 +19,8 @@ class BaseTheanoModel(object):
     
     def __init__(self, input_data, target_data, testX, testt, starting_params, sigma=0.02):
         
-        
+        super(RegressionModel, self).__init__()
+
         self.x_to_predict = theano.shared(np.random.random(input_data.shape))
         self.params = theano.shared(starting_params)
 
@@ -123,41 +126,6 @@ class BaseTheanoModel(object):
         self.params.set_value(params)
         return self.predict(X) + sigma * np.random.normal(size=X.shape) 
 
-    
-class MLPotential(BasePotential):
-    """ This class interfaces the model class to pele: 
-        The potential energy = cost function """
-    def __init__(self, model):
-        
-        self.model = model
-         
-    def getEnergy(self, coords):
-        return self.model.cost(coords)
- 
-    def getEnergyGradient(self, coords):
-
-        return self.model.costGradient(coords)
-     
-    def getEnergyGradientHessian(self, coords):
-        return self.model.costGradientHessian(coords)
-     
-
-class MLSystem(BaseSystem):
-    def __init__(self, model):
-        super(MLSystem, self).__init__()
-        self.model = model
-    
-    def get_potential(self):
-        return MLPotential(self.model)
-
-    def get_mindist(self):
-        # minimum distance is linear distance between two sets of parameter values.
-        # currently no symmetries are considered, since they are model-dependent.
-        return lambda x1, x2: (np.linalg.norm(x1-x2), x1, x2)
-
-    def get_orthogonalize_to_zero_eigenvectors(self):
-        return None
-        
 class RegressionSystem(MLSystem):
     def __init__(self, model, db_accuracy=0.01, minimizer_tolerance=1.0e-06):
         super(RegressionSystem, self).__init__(model)
@@ -177,7 +145,7 @@ class RegressionSystem(MLSystem):
         mindist = self.get_mindist()
         return lambda x1, x2: mindist(x1, x2)
 
-class TestModel(BaseTheanoModel):
+class TestModel(RegressionModel):
     """ An example regression model: exponential decay * product of sinusoids
     """
 
@@ -186,7 +154,7 @@ class TestModel(BaseTheanoModel):
         return T.exp(-self.params[0]*X) * T.sin(self.params[1]*X+self.params[2]) \
             * T.sin(self.params[3]*X + self.params[4])
 
-class SinModel(BaseTheanoModel):
+class SinModel(RegressionModel):
     """ A simple non-linear regression model: sinusoid.
     """
          

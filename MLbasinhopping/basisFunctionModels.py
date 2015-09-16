@@ -4,9 +4,9 @@ import theano.tensor as T
 
 import matplotlib.pyplot as plt
 
-from MLbasinhopping.regressionModels import BaseTheanoModel, RegressionSystem
+from MLbasinhopping.regression import RegressionModel, RegressionSystem
 
-class BasisFunctionModel(BaseTheanoModel):
+class BasisFunctionModel(RegressionModel):
     
     def Y(self, X):
         return sum(self.YbasisFunctions(X))
@@ -58,13 +58,13 @@ class SinBasis(BasisFunctionModel):
         return [f.eval() for f in functions]
         
             
-class SinModel(BaseTheanoModel):
+class SinModel(RegressionModel):
     
     def Y(self, X):
         
         return T.sin(self.params[0]*X + self.params[1])
     
-class HarmonicModel(BaseTheanoModel):
+class HarmonicModel(RegressionModel):
     
     def Y(self, X):
         
