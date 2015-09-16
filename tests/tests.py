@@ -1,5 +1,7 @@
 import numpy as np
 import unittest
+import logging
+import sys
 
 from MLbasinhopping.regressionModels import RegressionSystem
 from MLbasinhopping.basisFunctionModels import *
@@ -110,7 +112,21 @@ class CheckCorrectOutput(unittest.TestCase):
         m0 = self.db.minima()[0]
         self.assertAlmostEqual(m0.energy, 48.7613706646)
 
+    def test_costGradient(self):
         
+        pot = self.system.get_potential()
+        coords = np.random.random(self.system.model.params.get_value().shape)
+        
+        c, g = pot.getEnergyGradient(coords)
+        
+        self.assertAlmostEqual(c, 126.055885792)
+        self.assertAlmostEqual(g[0], 259.29652069)
+        
+        log = logging.getLogger("CheckCorrectOutput.test_costGradient")
+        log.debug("cost, grad=\n"+str(c)+"\n"+str(g))
+        
+logging.basicConfig(stream=sys.stderr)
+logging.getLogger("CheckCorrectOutput.test_costGradient").setLevel(logging.DEBUG)
 suite1 = unittest.TestLoader().loadTestsFromTestCase(CheckCorrectOutput)
 # suite2 = unittest.TestLoader().loadTestsFromTestCase(FindingInterestingParamsTestCase)
 

@@ -91,7 +91,8 @@ class BaseTheanoModel(object):
             returns: value of cost function and gradient
         """
         self.params.set_value(params)
-        return self._theano_costGradient()
+        c, g = self._theano_costGradient()
+        return c, g
     
     def costGradientHessian(self, params):
         """ inputs: parameter values (np array)
@@ -123,7 +124,7 @@ class BaseTheanoModel(object):
         return self.predict(X) + sigma * np.random.normal(size=X.shape) 
 
     
-class RegressionPotential(BasePotential):
+class MLPotential(BasePotential):
     """ This class interfaces the regression model class: 
         The potential energy = cost function """
     def __init__(self, model):
@@ -134,9 +135,8 @@ class RegressionPotential(BasePotential):
         return self.model.cost(coords)
  
     def getEnergyGradient(self, coords):
-        ret = self.model.costGradient(coords)
-        return ret[0].item(), ret[1]
-#         return self.model.costGradient(coords)
+
+        return self.model.costGradient(coords)
      
     def getEnergyGradientHessian(self, coords):
         return self.model.costGradientHessian(coords)
@@ -151,7 +151,7 @@ class RegressionSystem(BaseSystem):
 #         self.params.double_ended_connect.local_connect_params.tsSearchParams.hessian_diagonalization = True
 
     def get_potential(self):
-        return RegressionPotential(self.model)
+        return MLPotential(self.model)
     
     def get_mindist(self):
         # minimum distance is linear distance between two sets of parameter values.

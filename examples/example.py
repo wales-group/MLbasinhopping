@@ -63,6 +63,9 @@ def visualize_solutions(system, db, xvals, tvals, real_params):
     plt.show()
     
 def test():
+    
+    np.random.seed(12345)
+    
     # generate some test data
     xvals = 3.0*np.pi*np.random.random(100)
     testx = 3.0*np.pi*np.random.random(100)
@@ -84,20 +87,21 @@ def test():
 
     system = RegressionSystem(model)
     
-    db = system.create_database("SinModel"+str(real_params[0])+"_"+str(real_params[1])+".sqlite")
+#     db = system.create_database("SinModel"+str(real_params[0])+"_"+str(real_params[1])+".sqlite")
+    db = system.create_database()
     
     # run basin-hopping on this landscape
-    nsteps = 1000
+    nsteps = 10
     system, db = run_basinhopping(system, nsteps, db)
     
     # draw various best-fits from BH run
     visualize_solutions(system, db, xvals, tvals, real_params)
        
     # connect minima
-    run_double_ended_connect(system, db)
+#     run_double_ended_connect(system, db)
         
     # connect minima
-    make_disconnectivity_graph(system, db)
+#     make_disconnectivity_graph(system, db)
         
 
 if __name__=="__main__":
