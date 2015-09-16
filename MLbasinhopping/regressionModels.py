@@ -142,17 +142,14 @@ class MLPotential(BasePotential):
         return self.model.costGradientHessian(coords)
      
 
-class RegressionSystem(BaseSystem):
-    def __init__(self, model, db_accuracy=0.01, minimizer_tolerance=1.0e-06):
-        super(RegressionSystem, self).__init__()
+class MLSystem(BaseSystem):
+    def __init__(self, model):
+        super(MLSystem, self).__init__()
         self.model = model
-        self.params.database.accuracy = db_accuracy
-        self.minimizer_tolerance = minimizer_tolerance
-#         self.params.double_ended_connect.local_connect_params.tsSearchParams.hessian_diagonalization = True
-
+    
     def get_potential(self):
         return MLPotential(self.model)
-    
+
     def get_mindist(self):
         # minimum distance is linear distance between two sets of parameter values.
         # currently no symmetries are considered, since they are model-dependent.
@@ -160,6 +157,13 @@ class RegressionSystem(BaseSystem):
 
     def get_orthogonalize_to_zero_eigenvectors(self):
         return None
+        
+class RegressionSystem(MLSystem):
+    def __init__(self, model, db_accuracy=0.01, minimizer_tolerance=1.0e-06):
+        super(RegressionSystem, self).__init__(model)
+        self.params.database.accuracy = db_accuracy
+        self.minimizer_tolerance = minimizer_tolerance
+#         self.params.double_ended_connect.local_connect_params.tsSearchParams.hessian_diagonalization = True)
     
     def get_minimizer(self, nsteps=1e6, M=4, iprint=0, maxstep=1.0, **kwargs):
         from pele.optimize import lbfgs_cpp as quench
