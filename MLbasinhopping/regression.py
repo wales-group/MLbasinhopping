@@ -1,10 +1,8 @@
 import numpy as np
 import theano
 import theano.tensor as T
-from pele.potentials import BasePotential
-from pele.systems import BaseSystem
-from MLbasinhopping.systems import MLSystem
-from MLbasinhopping.models import BaseModel
+
+from MLbasinhopping.base import MLSystem, BaseModel
 
 class RegressionModel(BaseModel):
     """ This is the Base Model class for model parameter estimation,
@@ -56,7 +54,7 @@ class RegressionModel(BaseModel):
         self._theano_costGradientHessian = theano.function(inputs=[],
                                                           outputs=outputs
                                                           )
-        
+
     def _cost(self):
         """ 
             This function defines the model cost function, in this case a sum of squared errors
