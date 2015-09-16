@@ -143,10 +143,11 @@ class RegressionPotential(BasePotential):
      
 
 class RegressionSystem(BaseSystem):
-    def __init__(self, model):
+    def __init__(self, model, db_accuracy=0.01, minimizer_tolerance=1.0e-06):
         super(RegressionSystem, self).__init__()
         self.model = model
-        self.params.database.accuracy =0.01
+        self.params.database.accuracy = db_accuracy
+        self.minimizer_tolerance = minimizer_tolerance
 #         self.params.double_ended_connect.local_connect_params.tsSearchParams.hessian_diagonalization = True
 
     def get_potential(self):
@@ -160,9 +161,9 @@ class RegressionSystem(BaseSystem):
     def get_orthogonalize_to_zero_eigenvectors(self):
         return None
     
-    def get_minimizer(self, tol=1.0e-6, nsteps=1e6, M=4, iprint=0, maxstep=1.0, **kwargs):
+    def get_minimizer(self, nsteps=1e6, M=4, iprint=0, maxstep=1.0, **kwargs):
         from pele.optimize import lbfgs_cpp as quench
-        return lambda coords: quench(coords, self.get_potential(), tol=tol, 
+        return lambda coords: quench(coords, self.get_potential(), tol=self.minimizer_tolerance, 
                                      nsteps=nsteps, M=M, iprint=iprint, 
                                      maxstep=maxstep, 
                                      **kwargs)
