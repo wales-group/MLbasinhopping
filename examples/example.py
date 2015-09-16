@@ -1,7 +1,7 @@
 import numpy as np
 import theano
 import theano.tensor as T
-from MLbasinhopping.regressionModels import RegressionModel, RegressionSystem, TestModel, SinModel
+from MLbasinhopping.regression import RegressionModel, RegressionSystem, TestModel, SinModel
 
 import matplotlib.pyplot as plt
     
@@ -98,10 +98,10 @@ def test():
     visualize_solutions(system, db, xvals, tvals, real_params)
        
     # connect minima
-#     run_double_ended_connect(system, db)
+    run_double_ended_connect(system, db)
         
     # connect minima
-#     make_disconnectivity_graph(system, db)
+    make_disconnectivity_graph(system, db)
         
 
 if __name__=="__main__":
