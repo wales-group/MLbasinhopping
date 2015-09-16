@@ -4,7 +4,7 @@ import theano.tensor as T
 
 import matplotlib.pyplot as plt
 
-from MLbasinhopping.regression import RegressionModel, RegressionSystem
+from MLbasinhopping.regression.models import RegressionModel, RegressionSystem
 
 class BasisFunctionModel(RegressionModel):
     

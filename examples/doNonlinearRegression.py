@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from utils import run_basinhopping, run_double_ended_connect, make_disconnectivity_graph
 
-from MLbasinhopping.regression import RegressionModel, RegressionSystem, TestModel, SinModel
+from MLbasinhopping.regression.models import RegressionModel, RegressionSystem, TestModel, SinModel
 
 def visualize_solutions(system, db, xvals, tvals, real_params):    
     for m in db.minima():
@@ -18,11 +18,11 @@ def visualize_solutions(system, db, xvals, tvals, real_params):
     plt.plot(np.arange(0.,3*np.pi,0.01), system.model.predict(np.arange(0.,3*np.pi,0.01)), '-')
     plt.show()
     
-def test():
+def run():
     
     np.random.seed(12345)
     
-    # generate some test data
+    # generate some run data
     xvals = 3.0*np.pi*np.random.random(100)
     testx = 3.0*np.pi*np.random.random(100)
     
@@ -61,4 +61,4 @@ def test():
         
 
 if __name__=="__main__":
-    test()
+    run()

@@ -3,8 +3,8 @@ import unittest
 import logging
 import sys
 
-from MLbasinhopping.regression import RegressionSystem
-from MLbasinhopping.basisFunctionModels import *
+from MLbasinhopping.regression.models import RegressionSystem
+from MLbasinhopping.regression.basisFunctionModels import *
 
 def run_basinhopping(system, nsteps, database):
     
