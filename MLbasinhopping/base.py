@@ -31,6 +31,10 @@ class MLSystem(BaseSystem):
     def get_orthogonalize_to_zero_eigenvectors(self):
         return None
 
+    def get_random_configuration(self):
+        
+        return np.random.random(self.model.nparams)
+    
 class MLPotential(BasePotential):
     """ This class interfaces the model class to pele: 
         The potential energy = cost function """

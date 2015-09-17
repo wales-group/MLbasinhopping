@@ -1,7 +1,7 @@
 import numpy as np
-from pele_mpl import NNSystem
+from MLbasinhopping.NN.models import NNSystem, NNModel
 
-from pele.gui import run_gui
+from MLbasinhopping.utils import run_basinhopping, run_double_ended_connect, make_disconnectivity_graph
 
 def connect_minima(system, db):
     print "now connecting all the minima to the  minimum"
@@ -74,7 +74,7 @@ def make_only_dg(system, database, color=None):
     dg.plot()
     plt.show()   
     
-def run_basinhopping(system, db):
+def run_basinhopping2(system, db):
     
 #     quench = system.get_minimizer()
 #     db = system.create_database("/home/ab2111/machine_learning_landscapes/neural_net/theano_db/"+"reg"+str(system.potential.L2_reg)+".sqlite")
@@ -306,32 +306,20 @@ def weighted_prediction(system, db):
 def main():
     
     ndata = 50000
-    n_hidden = 300
+    n_hidden = 100
     p = 2
     L2_reg=np.power(1.0e1, -p)
 #     L1_reg=np.power(1.0e1, -p)
 #     L2_reg=0.0
     L1_reg=0.0
     bias_reg = 0.0
-    system = NNSystem(ndata=ndata, n_hidden=n_hidden, L1_reg=L1_reg, L2_reg=L2_reg, bias_reg=bias_reg)
-    db = system.create_database("/home/ab2111/machine_learning_landscapes/neural_net/theano_db/"
-                                +"data"+str(ndata)
-                                +"hidden"+str(n_hidden)
-#                                 +"L1reg"+str(system.potential.L2_reg)+".sqlite")
-                                +"reg"+str(system.potential.L2_reg)+".sqlite")
-#     db = system.create_database("/home/ab2111/machine_learning_landscapes/neural_net/theano_db/"
-#                                 +"toDelete.sqlite")
-#     hem = HammingErrorAnalysis(system, db)
-#     hem.plot()
-#     exit()
-#     dg = HammingDG(system, db, hem)
-#     dg.plot()
+    model = NNModel(ndata=ndata, n_hidden=n_hidden, L1_reg=L1_reg, L2_reg=L2_reg, bias_reg=bias_reg)
+    system = NNSystem(model)
     
-#     m0 = db.minima()[0]
-#     quench = system.get_minimizer(iprint=200)
-#     ret = quench(m0.coords)
-#     do_hessian_decomp(system, db)
-#     run_basinhopping(system, db)     
+    db = system.create_database()
+
+    nsteps = 10
+    run_basinhopping(system, nsteps, db)     
     get_minima_stats(system, db)
 #     weighted_prediction(system, db)
 #     get_misread_stats(system, db)

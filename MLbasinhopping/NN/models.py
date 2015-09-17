@@ -192,7 +192,7 @@ class NNSystem(MLSystem):
         super(NNSystem, self).__init__(model)
         self.minimizer_tolerance = minimizer_tolerance
 
-    def get_minimizer(self, nsteps=1e5, M=4, iprint=1, maxstep=1.0, **kwargs):
+    def get_minimizer(self, nsteps=1e5, M=4, iprint=0, maxstep=1.0, **kwargs):
         from pele.optimize import lbfgs_cpp as quench
         return lambda coords: quench(coords, self.get_potential(), tol=self.minimizer_tolerance, 
                                      nsteps=nsteps, M=M, iprint=iprint, 
