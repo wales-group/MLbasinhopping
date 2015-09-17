@@ -21,7 +21,8 @@ class RegressionModel(BaseModel):
 
         self.x_to_predict = theano.shared(np.random.random(input_data.shape))
         self.params = theano.shared(starting_params)
-
+        self.nparams = len(self.params.eval())
+        
         self.X = theano.shared(input_data)
         
         """If no target data is provided, samples are drawn from the model with noise""" 

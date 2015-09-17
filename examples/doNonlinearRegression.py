@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from utils import run_basinhopping, run_double_ended_connect, make_disconnectivity_graph
+from MLbasinhopping.utils import run_basinhopping, run_double_ended_connect, make_disconnectivity_graph
 
 from MLbasinhopping.regression.models import RegressionModel, RegressionSystem, TestModel, SinModel
 

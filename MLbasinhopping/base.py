@@ -5,6 +5,9 @@ from pele.potentials import BasePotential
 
 class BaseModel(object):
     
+    def __init__(self):
+        self.nparams = None
+        
     def cost(self, coords):
         return NotImplementedError
     def costGradient(self, coords):
