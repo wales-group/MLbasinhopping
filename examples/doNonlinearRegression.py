@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from MLbasinhopping.utils import run_basinhopping, run_double_ended_connect, make_disconnectivity_graph
+from MLbasinhopping.utils import run_basinhopping, run_double_ended_connect, make_disconnectivity_graph, database_stats
 
 from MLbasinhopping.regression.models import RegressionModel, RegressionSystem, TestModel, SinModel
 
@@ -58,7 +58,6 @@ def run():
         
     # connect minima
     make_disconnectivity_graph(system, db)
-        
-
+    
 if __name__=="__main__":
     run()
