@@ -101,7 +101,7 @@ def get_minima_stats(system, db):
     from pele.thermodynamics._normalmodes import normalmodes
     
     for m in db.minima():
-            print m._id, m.energy, np.average(pot.getValidationError(m.coords))
+            print m._id, m.energy, np.average(pot.model.getValidationError(m.coords))
 #             e,g,h = pot.getEnergyGradientHessian(m.coords)
 #             print "got hessian, rms grad:", np.linalg.norm(g)
 #             evals, evecs = normalmodes(h)
