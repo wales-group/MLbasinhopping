@@ -26,7 +26,9 @@ class CheckCorrectOutput(unittest.TestCase):
         self.system = NNSystem(model)
 
         self.db = self.system.create_database()
-         
+        
+        pot = self.system.get_potential()
+        print "Energy: ", pot.getEnergy(np.random.random(self.system.model.nparams))
 #         run_basinhopping(system, nsteps, db)     
 
         # connect minima
@@ -40,7 +42,7 @@ class CheckCorrectOutput(unittest.TestCase):
         quench = self.system.get_minimizer()
         coords = np.random.random(self.system.model.nparams)
         ret = quench(coords)
-        self.assertAlmostEqual(ret.energy, 3.750895922, msg="Error: Quenched energy = "+str(ret.energy))
+        self.assertAlmostEqual(ret.energy, 3.39582710, msg="Error: Quenched energy = "+str(ret.energy))
 
 #         self.assertEqual(Nminima, 5, msg="Nminima: "+str(Nminima)+" != 5")
 

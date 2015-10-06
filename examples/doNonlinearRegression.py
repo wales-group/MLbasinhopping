@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from MLbasinhopping.utils import run_basinhopping, run_double_ended_connect, make_disconnectivity_graph
+from MLbasinhopping.utils import run_basinhopping, run_double_ended_connect, make_disconnectivity_graph, database_stats
 
 from MLbasinhopping.regression.models import RegressionModel, RegressionSystem, TestModel, SinModel
 
@@ -20,7 +20,7 @@ def visualize_solutions(system, db, xvals, tvals, real_params):
     
 def run():
     
-    np.random.seed(12345)
+    np.random.seed(1234768)
     
     # generate some run data
     xvals = 3.0*np.pi*np.random.random(100)
@@ -47,7 +47,8 @@ def run():
     db = system.create_database()
     
     # run basin-hopping on this landscape
-    nsteps = 10
+    nsteps = 1000
+
     system, db = run_basinhopping(system, nsteps, db)
     
     # draw various best-fits from BH run
@@ -58,7 +59,6 @@ def run():
         
     # connect minima
     make_disconnectivity_graph(system, db)
-        
-
+    
 if __name__=="__main__":
     run()
