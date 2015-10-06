@@ -1,6 +1,20 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def connect_to_gmin(system, db):
+    
+    print "now connecting all the minima to the  minimum"
+
+    minima = db.minima()
+
+    m1 = minima[0]
+
+        
+    for m2 in minima[1:]:
+
+        connect = system.get_double_ended_connect(m1, m2, db, fresh_connect=True)
+        connect.connect()
+        
 def database_stats(system, db):
     
     print "Minimum Energy: "
@@ -17,7 +31,7 @@ def run_basinhopping(system, nsteps, database):
     x0 = np.random.random(system.model.nparams)
     
     from pele.takestep import RandomCluster
-    step = RandomCluster(volume=5.0)
+    step = RandomCluster(volume=55.0)
     bh = system.get_basinhopping(database=database, 
                                  takestep=step,
                                  coords=x0,
@@ -35,10 +49,10 @@ def run_basinhopping(system, nsteps, database):
     
     return system, database
 
-def run_double_ended_connect(system, database):
+def run_double_ended_connect(system, database, strategy='gmin'):
     # connect the all minima to the lowest minimum
     from pele.landscape import ConnectManager
-    manager = ConnectManager(database, strategy="gmin")
+    manager = ConnectManager(database, strategy=strategy)
     for i in xrange(database.number_of_minima()-1):
         min1, min2 = manager.get_connect_job()
         connect = system.get_double_ended_connect(min1, min2, database)
