@@ -1,17 +1,27 @@
 import numpy as np
 import matplotlib.pyplot as plt
+<<<<<<< Updated upstream
         
 def database_stats(system, db):
     
     print "Minimum Energy: "
     for m in db.minima():
         print m.energy
+=======
+
+def database_stats(system, db):
+    
+    pot = system.get_potential()
         
     print "Nminima = ", len(db.minima())
     print "Nts = ", len(db.transition_states())
     
     make_disconnectivity_graph(system, db)
     
+    print "Minimum Energy, RMS grad: "
+    for m in db.minima():
+        print m.energy, np.linalg.norm(pot.getEnergyGradient(m.coords)[1])
+
 def run_basinhopping(system, nsteps, database):
     
     x0 = np.random.random(system.model.nparams)
@@ -48,12 +58,21 @@ def make_disconnectivity_graph(system, database):
     from pele.utils.disconnectivity_graph import DisconnectivityGraph, database2graph
     
     graph = database2graph(database)
+<<<<<<< Updated upstream
     dg = DisconnectivityGraph(graph, nlevels=20, center_gmin=False, include_gmin=False)
+=======
+    dg = DisconnectivityGraph(graph, nlevels=10, center_gmin=False, include_gmin=False)
+>>>>>>> Stashed changes
     dg.calculate()
     
     # color DG points by test-set error
 #     minimum_to_testerror = lambda m: system.model.testset_error(m.coords)
 #     dg.color_by_value(minimum_to_testerror)
+<<<<<<< Updated upstream
     dg.plot(linewidth=1.5)
+=======
+    dg.plot()
+    #dg.plot(linewidth=1.5)
+>>>>>>> Stashed changes
 #     plt.colorbar()
     plt.show()
