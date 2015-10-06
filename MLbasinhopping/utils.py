@@ -1,13 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
-<<<<<<< Updated upstream
         
 def database_stats(system, db):
     
     print "Minimum Energy: "
     for m in db.minima():
         print m.energy
-=======
 
 def database_stats(system, db):
     
