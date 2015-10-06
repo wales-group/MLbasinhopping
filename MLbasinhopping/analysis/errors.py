@@ -10,18 +10,21 @@ class HammingErrorAnalysis(object):
     """This class is mainly concerned with calculation of HEM = Hamming Error Matrix.
     """
     
-    def __init__(self, system, db):
+    def __init__(self, system, db, debug=False):
         self.db = db
         self.system = system
-        
+        self.debug = debug
         self.run_analysis()
         
     def calculateErrors(self):
 
+        minima = self.db.minima()
+        if self.debug:
+            minima = minima[:10]
         Errors = []
-        for m in self.db.minima():
+        for m in minima:
                 print m._id, m.energy
-                errors = self.system.potential.getValidationError(m.coords)
+                errors = self.system.model.getValidationError(m.coords)
     #             Errors.append([e for ei,e in enumerate(errors) if pot.test_t[ei]==digit])
                 Errors.append(errors)
     
