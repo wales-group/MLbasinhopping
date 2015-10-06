@@ -56,21 +56,13 @@ def make_disconnectivity_graph(system, database):
     from pele.utils.disconnectivity_graph import DisconnectivityGraph, database2graph
     
     graph = database2graph(database)
-<<<<<<< Updated upstream
     dg = DisconnectivityGraph(graph, nlevels=20, center_gmin=False, include_gmin=False)
-=======
-    dg = DisconnectivityGraph(graph, nlevels=10, center_gmin=False, include_gmin=False)
->>>>>>> Stashed changes
     dg.calculate()
     
     # color DG points by test-set error
 #     minimum_to_testerror = lambda m: system.model.testset_error(m.coords)
 #     dg.color_by_value(minimum_to_testerror)
-<<<<<<< Updated upstream
     dg.plot(linewidth=1.5)
-=======
-    dg.plot()
     #dg.plot(linewidth=1.5)
->>>>>>> Stashed changes
 #     plt.colorbar()
     plt.show()
