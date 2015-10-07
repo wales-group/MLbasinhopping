@@ -7,8 +7,8 @@ To run basin-hopping on a least-squares regression problem:
 
 ```python examples/doNonlinearRegression.py```
 
-Dependencies:
-  numpy 
-  pele
-  Theano (for regression / NN examples)
+Dependencies:  
+  numpy   
+  pele  
+  Theano (for regression / NN examples)  
   
