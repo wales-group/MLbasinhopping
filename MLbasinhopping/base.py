@@ -49,4 +49,7 @@ class MLPotential(BasePotential):
         return self.model.costGradient(coords)
      
     def getEnergyGradientHessian(self, coords):
-        return self.model.costGradientHessian(coords)
+        if hasattr(self.model, "costGradientHessian"):
+            return self.model.costGradientHessian(coords)
+        else:
+            return lambda x : super(MLPotential, self).getEnergyGradientHessian(x)
