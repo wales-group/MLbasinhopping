@@ -3,12 +3,6 @@ import matplotlib.pyplot as plt
         
 def database_stats(system, db, **kwargs):
     
-    print "Minimum Energy: "
-    for m in db.minima():
-        print m.energy
-
-def database_stats(system, db):
-    
     pot = system.get_potential()
         
     print "Nminima = ", len(db.minima())
