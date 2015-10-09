@@ -5,4 +5,10 @@ This is a repository for using landscape exploration techniques to search the pa
 
 To run basin-hopping on a least-squares regression problem:
 
-```python examples/examply.py```
+```python examples/doNonlinearRegression.py```
+
+Dependencies:  
+  numpy   
+  pele  
+  Theano (for regression / NN examples)  
+  
