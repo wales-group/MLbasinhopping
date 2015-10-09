@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
         
-def database_stats(system, db):
+def database_stats(system, db, **kwargs):
     
     print "Minimum Energy: "
     for m in db.minima():
@@ -14,7 +14,7 @@ def database_stats(system, db):
     print "Nminima = ", len(db.minima())
     print "Nts = ", len(db.transition_states())
     
-    make_disconnectivity_graph(system, db)
+    make_disconnectivity_graph(system, db, **kwargs)
     
     print "Minimum Energy, RMS grad: "
     for m in db.minima():
@@ -52,11 +52,11 @@ def run_double_ended_connect(system, database, strategy='gmin'):
         connect = system.get_double_ended_connect(min1, min2, database)
         connect.connect()
         
-def make_disconnectivity_graph(system, database):
+def make_disconnectivity_graph(system, database, **kwargs):
     from pele.utils.disconnectivity_graph import DisconnectivityGraph, database2graph
     
     graph = database2graph(database)
-    dg = DisconnectivityGraph(graph, nlevels=20, center_gmin=False, include_gmin=False)
+    dg = DisconnectivityGraph(graph, **kwargs)
     dg.calculate()
     
     # color DG points by test-set error
