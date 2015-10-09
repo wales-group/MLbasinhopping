@@ -3,15 +3,17 @@ import matplotlib.pyplot as plt
         
 def database_stats(system, db, **kwargs):
     
-    print "Minimum Energy: "
-    for m in db.minima():
-        print m.energy
+    pot = system.get_potential()
         
     print "Nminima = ", len(db.minima())
     print "Nts = ", len(db.transition_states())
     
     make_disconnectivity_graph(system, db, **kwargs)
     
+    print "Minimum Energy, RMS grad: "
+    for m in db.minima():
+        print m.energy, np.linalg.norm(pot.getEnergyGradient(m.coords)[1])
+
 def run_basinhopping(system, nsteps, database):
     
     x0 = np.random.random(system.model.nparams)
@@ -55,5 +57,6 @@ def make_disconnectivity_graph(system, database, **kwargs):
 #     minimum_to_testerror = lambda m: system.model.testset_error(m.coords)
 #     dg.color_by_value(minimum_to_testerror)
     dg.plot(linewidth=1.5)
+    #dg.plot(linewidth=1.5)
 #     plt.colorbar()
     plt.show()
