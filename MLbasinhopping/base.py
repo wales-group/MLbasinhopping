@@ -12,8 +12,6 @@ class BaseModel(object):
         return NotImplementedError
     def costGradient(self, coords):
         return NotImplementedError
-    def costGradientHessian(self, coords):
-        return NotImplementedError
 
 class MLSystem(BaseSystem):
     def __init__(self, model):
@@ -52,4 +50,4 @@ class MLPotential(BasePotential):
         if hasattr(self.model, "costGradientHessian"):
             return self.model.costGradientHessian(coords)
         else:
-            return lambda x : super(MLPotential, self).getEnergyGradientHessian(x)
+            return super(MLPotential, self).getEnergyGradientHessian(coords)
