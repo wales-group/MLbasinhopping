@@ -305,8 +305,8 @@ def weighted_prediction(system, db):
          
 def main():
     
-    ndata = 50000
-    n_hidden = 100
+    ndata = 1000
+    n_hidden = 10
     p = 2
     L2_reg=np.power(1.0e1, -p)
 #     L1_reg=np.power(1.0e1, -p)
@@ -317,7 +317,11 @@ def main():
     system = NNSystem(model)
     
     db = system.create_database()
-
+    pot = system.get_potential()
+    print "Ndof = ", model.nparams
+    ret = pot.getEnergyGradientHessian(np.random.random(system.model.nparams))
+    print ret
+    exit()
     nsteps = 10
     run_basinhopping(system, nsteps, db)     
     get_minima_stats(system, db)

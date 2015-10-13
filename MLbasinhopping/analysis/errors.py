@@ -20,7 +20,7 @@ class HammingErrorAnalysis(object):
 
         minima = self.db.minima()
         if self.debug:
-            minima = minima[:10]
+            minima = minima[:100]
         Errors = []
         for m in minima:
                 print m._id, m.energy
@@ -50,13 +50,17 @@ class HammingErrorAnalysis(object):
             for j,ej in enumerate(self.Errors):
                 self.HEM[i,j] = hamming(ei,ej)
  
-    def plot(self):
+    def plot(self, outfile=None):
         import matplotlib.pyplot as plt
         plt.clf()
         plt.imshow(self.HEM)
         plt.colorbar()
-        plt.show()   
-    
+        
+        if not outfile:
+            plt.show()   
+        else:
+            plt.savefig(outfile)
+            
     def stats(self):
         print "Errors averaged over minima: "
         p100=np.average(np.sum(self.Errors, axis=0)==self.Errors.shape[0])
