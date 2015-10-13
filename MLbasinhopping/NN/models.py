@@ -24,7 +24,7 @@ def get_data():
     dataset = "mnist.pkl.gz"
     with gzip.open(os.path.join(__location__, dataset)) as f:
         train_set, valid_set, test_set = cPickle.load(f)
-    
+
     # training data
     x = train_set[0]
     ndata, n_features = x.shape
@@ -43,13 +43,15 @@ def get_data():
 
 
 class NNModel(BaseModel):
-    def __init__(self, ndata=1000, n_hidden=10, L1_reg=0.00, L2_reg=0.0001, bias_reg=0.00):
+    def __init__(self, ndata=1000, n_hidden=10, n_out=10, L1_reg=0.00, L2_reg=0.0001, bias_reg=0.00, dataLoader=get_data):
         
-        train_x, train_t, test_x, test_t = get_data()
+        train_x, train_t, test_x, test_t = dataLoader()
         train_x = train_x[:ndata,:]
         train_t = train_t[:ndata]
         train_t = np.asarray(train_t, dtype="int32")
     
+        ntrain, nfeatures = train_x.shape
+        
         self.train_t = train_t
         self.test_t = test_t
         
@@ -71,9 +73,9 @@ class NNModel(BaseModel):
         classifier = MLP(
             rng=rng,
             input=x,
-            n_in=28 * 28,
+            n_in=nfeatures,
             n_hidden=n_hidden,
-            n_out=10
+            n_out=n_out
         )
         self.classifier = classifier
     

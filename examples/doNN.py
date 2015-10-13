@@ -319,9 +319,9 @@ def main():
     db = system.create_database()
     pot = system.get_potential()
     print "Ndof = ", model.nparams
-    ret = pot.getEnergyGradientHessian(np.random.random(system.model.nparams))
-    print ret
-    exit()
+#     ret = pot.getEnergyGradientHessian(np.random.random(system.model.nparams))
+#     print ret
+#     exit()
     nsteps = 10
     run_basinhopping(system, nsteps, db)     
     get_minima_stats(system, db)
