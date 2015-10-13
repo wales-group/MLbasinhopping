@@ -35,8 +35,8 @@ def get_data_LJ3():
 
 def main():
     
-    ndata = 1000
-    n_hidden = 30
+    ndata = 5000
+    n_hidden = 10
     p = 2
     L2_reg=np.power(1.0e1, -p)
     L1_reg=0.0
